@@ -19,4 +19,4 @@ YourTicket est une application web de gestion de tickets/support, permettant aux
 - MySQL (base de données)
 - Tailwind CSS (design)
 - JavaScript (animations et interactions)
-- HTML/CSS
+- HTML/CSS# site_ticket
