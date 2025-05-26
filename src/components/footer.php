@@ -6,8 +6,7 @@ $lang = 'fr';
 $theme = 'light';
 if (isset($_SESSION['id'])) {
     $lang = getLanguage($db, $_SESSION['id']);
-    $theme = getTheme($db, $_SESSION['i
-    d']);
+    $theme = getTheme($db, $_SESSION['id']);
 }
 ?>
 

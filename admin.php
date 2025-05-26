@@ -58,6 +58,23 @@ if (
     }
 }
 
+// Suppression d'utilisateur si requête GET (ou POST selon votre logique)
+if (
+    isset($_GET['delete_user_id'])
+    && (hasPermission('Admin Access', $currentUserPermissions))
+) {
+    $userIdToDelete = intval($_GET['delete_user_id']);
+    try {
+        $stmt = $db->prepare("UPDATE Users SET Deleted_at = NOW() WHERE Id = :id");
+        $stmt->bindValue(':id', $userIdToDelete, PDO::PARAM_INT);
+        $stmt->execute();
+        header("Location: admin.php?user_deleted=1#users");
+        exit;
+    } catch (PDOException $e) {
+        // Optionnel : gestion d'erreur
+    }
+}
+
 // Inclure le header APRÈS la gestion des headers/redirections
 require_once __DIR__ . '/src/components/header.php';
 
@@ -261,6 +278,11 @@ try {
                     <i class="fas fa-check-circle mr-2"></i><?= t('ticket_deleted', $translations, $lang) ?? 'Le ticket a été supprimé avec succès.' ?>
                 </div>
             <?php endif; ?>
+            <?php if (isset($_GET['user_deleted']) && $_GET['user_deleted'] == 1): ?>
+                <div class="bg-green-100 dark:bg-green-900/20 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6 text-center">
+                    <i class="fas fa-check-circle mr-2"></i><?= t('user_deleted', $translations, $lang) ?? 'L\'utilisateur a été supprimé avec succès.' ?>
+                </div>
+            <?php endif; ?>
 
             <!-- Navigation par onglets -->
             <div class="mb-6 border-b border-gray-200 dark:border-gray-700">
@@ -444,7 +466,7 @@ try {
                                         <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
                                             <i class="fas fa-edit mr-1"></i> <?= t('edit', $translations, $lang) ?>
                                         </a>
-                                        <a href="delete_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors" onclick="return confirm('<?= t('confirm_delete_user', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.' ?>');">
+                                        <a href="admin.php?delete_user_id=<?= $user['user_id'] ?>#users" class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors" onclick="return confirm('<?= t('confirm_delete_user', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.' ?>');">
                                             <i class="fas fa-trash-alt mr-1"></i> <?= t('delete', $translations, $lang) ?>
                                         </a>
                                     </div>
