@@ -48,30 +48,21 @@ if (
 ) {
     $ticketIdToDelete = intval($_POST['delete_ticket_id']);
     try {
-        $stmt = $db->prepare("UPDATE Ticket SET Deleted_at = NOW() WHERE Id = :id");
+        // --- SUPPRESSION LOGIQUE (soft delete) ---
+        // $stmt = $db->prepare("UPDATE Ticket SET Deleted_at = NOW() WHERE Id = :id");
+        // $stmt->bindValue(':id', $ticketIdToDelete, PDO::PARAM_INT);
+        // $stmt->execute();
+
+        // --- POUR UNE SUPPRESSION PHYSIQUE, DÉCOMMENTE LA LIGNE SUIVANTE ET COMMENTE LES 3 LIGNES AU-DESSUS ---
+        $stmt = $db->prepare("DELETE FROM Ticket WHERE Id = :id");
         $stmt->bindValue(':id', $ticketIdToDelete, PDO::PARAM_INT);
         $stmt->execute();
+
         header("Location: admin.php?deleted=1");
         exit;
     } catch (PDOException $e) {
-        // Optionnel : message d'erreur
-    }
-}
-
-// Suppression d'utilisateur si requête GET (ou POST selon votre logique)
-if (
-    isset($_GET['delete_user_id'])
-    && (hasPermission('Admin Access', $currentUserPermissions))
-) {
-    $userIdToDelete = intval($_GET['delete_user_id']);
-    try {
-        $stmt = $db->prepare("UPDATE Users SET Deleted_at = NOW() WHERE Id = :id");
-        $stmt->bindValue(':id', $userIdToDelete, PDO::PARAM_INT);
-        $stmt->execute();
-        header("Location: admin.php?user_deleted=1#users");
-        exit;
-    } catch (PDOException $e) {
-        // Optionnel : gestion d'erreur
+        // Affiche une erreur si la colonne Deleted_at n'existe pas
+        echo "<div style='color:red'>Erreur lors de la suppression du ticket : " . htmlspecialchars($e->getMessage()) . "</div>";
     }
 }
 
@@ -169,6 +160,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="<?= $theme === 'dark' ? 'dark' : '' ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -259,6 +251,7 @@ try {
         }
     </style>
 </head>
+
 <body class="min-h-screen transition-colors duration-200">
     <main class="flex-grow py-12 px-4">
         <div class="container mx-auto max-w-7xl">
@@ -466,7 +459,7 @@ try {
                                         <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
                                             <i class="fas fa-edit mr-1"></i> <?= t('edit', $translations, $lang) ?>
                                         </a>
-                                        <a href="admin.php?delete_user_id=<?= $user['user_id'] ?>#users" class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors" onclick="return confirm('<?= t('confirm_delete_user', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.' ?>');">
+                                        <a href="delete_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors delete-user-btn" onclick="return confirm('<?= t('confirm_delete_user', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.' ?>');">
                                             <i class="fas fa-trash-alt mr-1"></i> <?= t('delete', $translations, $lang) ?>
                                         </a>
                                     </div>
@@ -612,6 +605,7 @@ try {
         adjustTableLayout();
     </script>
 </body>
+
 </html>
 <?php
 // Fermer la connexion
