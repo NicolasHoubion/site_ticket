@@ -1,13 +1,23 @@
 <?php
+$host = 'localhost';
+$dbname = 'u208447672_My_Ticket_233';
+$username = 'u208447672_NicoHoubi';
+$password = '31NvT]Vt';
+
+// Tentative de connexion
+$conn = new mysqli($host, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Échec MySQLi: " . $conn->connect_error);
+} else {
+    echo "Succès MySQLi!";
+    $conn->close();
+}
+
+// Test PDO
 try {
-    // Connexion à la base
-    $options = [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::MYSQL_ATTR_INIT_COMMAND => "SET NAMES 'utf8mb4' COLLATE 'utf8mb4_0900_ai_ci'"
-    ];
-    $db = new PDO('mysql:host=localhost;dbname=ticket_233;charset=utf8mb4', 'root', 'root', $options);
+    $pdo = new PDO("mysql:host=$host;dbname=$dbname", $username, $password);
+    echo "Succès PDO!";
 } catch (PDOException $e) {
-    echo 'Erreur : ' . $e->getMessage();
-    die();
+    echo "Échec PDO: " . $e->getMessage();
 }

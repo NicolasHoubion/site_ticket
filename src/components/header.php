@@ -28,6 +28,9 @@ if (isset($_SESSION['id'])) {
     $userImage = $profileImage;
   }
 }
+
+// Récupérer le thème depuis le cookie s'il existe
+$theme = $_COOKIE['theme_preference'] ?? $theme;
 ?>
 <script src="https://cdn.tailwindcss.com"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -238,9 +241,26 @@ if (isset($_SESSION['id'])) {
       });
     }
 
-    // Gestion du thème
+  // Gestion du thème
+  const loadTheme = () => {
     const html = document.documentElement;
-    const savedTheme = localStorage.getItem('theme') || '<?= $theme ?>';
+
+    // Priorité 1: cookie
+    // Priorité 2: valeur PHP par défaut
+    const savedTheme = getCookie('theme_preference') || '<?= $theme ?>';
+
+    // Appliquer le thème
     html.classList.toggle('dark', savedTheme === 'dark');
+  };
+
+  // Fonction utilitaire pour lire les cookies
+  function getCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return parts.pop().split(';').shift();
+  }
+
+  // Appliquer le thème au chargement
+  loadTheme();
   });
 </script>

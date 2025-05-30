@@ -54,9 +54,9 @@ if (
         // $stmt->execute();
 
         // --- POUR UNE SUPPRESSION PHYSIQUE, DÉCOMMENTE LA LIGNE SUIVANTE ET COMMENTE LES 3 LIGNES AU-DESSUS ---
-        $stmt = $db->prepare("DELETE FROM Ticket WHERE Id = :id");
-        $stmt->bindValue(':id', $ticketIdToDelete, PDO::PARAM_INT);
-        $stmt->execute();
+        // $stmt = $db->prepare("DELETE FROM Ticket WHERE Id = :id");
+        // $stmt->bindValue(':id', $ticketIdToDelete, PDO::PARAM_INT);
+        // $stmt->execute();
 
         header("Location: admin.php?deleted=1");
         exit;

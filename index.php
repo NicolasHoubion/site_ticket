@@ -2,20 +2,25 @@
 session_start();
 require_once 'src/php/dbconn.php';
 require_once 'src/php/lang.php';
+
+// Vérifier le thème avant d'inclure le header
+$user_id = $_SESSION['id'] ?? 0;
+$lang = getLanguage($db, $user_id);
+$theme = getTheme($db, $user_id);
+
+// Utiliser le cookie si disponible
+$theme = $_COOKIE['theme_preference'] ?? $theme;
+
+// Maintenant inclure le header
 require_once 'src/components/header.php';
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
-
-$user_id = $_SESSION['id'] ?? 0;
-$lang = getLanguage($db, $user_id);
-$theme = getTheme($db, $user_id);
 ?>
 
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="<?= $theme === 'dark' ? 'dark' : '' ?>">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -43,6 +48,9 @@ $theme = getTheme($db, $user_id);
 
 body {
     background: var(--body-bg) !important;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
 }
 
 .gradient-bg {
@@ -63,7 +71,13 @@ body {
 
 .feature-card {
     background: var(--feature-bg);
-    border: 1px solid #e5e7eb; /* Ajout d'une bordure pour les cartes */
+    border: 1px solid #e5e7eb;
+    transition: all 0.3s ease;
+}
+
+.feature-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
 }
 
 .cta-soft {
@@ -80,14 +94,17 @@ body {
     opacity: 0.9;
 }
 
+main {
+    flex: 1;
+}
     </style>
 </head>
 
-<body class="min-h-screen transition-colors duration-200">
+<body class="transition-colors duration-200">
 
     <?php require_once 'src/components/header.php'; ?>
 
-    <main class="flex-grow">
+    <main>
         <!-- Messages flash -->
         <?php if (isset($_SESSION['login_success']) && $_SESSION['login_success'] === true): ?>
             <div class="bg-green-100 dark:bg-green-900/20 border border-green-400 dark:border-green-600 text-green-700 dark:text-green-300 px-4 py-3 rounded mb-6 text-center">
@@ -103,19 +120,19 @@ body {
         <?php endif; ?>
 
         <!-- Hero Section -->
-        <section class="py-16 md:py-24 px-4 soft-section">
+        <section class="py-12 md:py-20 px-4 soft-section">
             <div class="container mx-auto text-center max-w-4xl">
-                <h1 class="text-4xl md:text-5xl font-bold mb-6">
+                <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
                     <span class="gradient-text"><?= t('welcome', $translations, $lang) ?></span>
                 </h1>
-                <p class="text-xl text-gray-600 dark:text-gray-400 mb-8">
+                <p class="text-xl lg:text-2xl text-gray-600 dark:text-gray-400 mb-10 max-w-3xl mx-auto">
                     <?= t('welcome_subtext', $translations, $lang) ?>
                 </p>
                 <div class="flex flex-col md:flex-row justify-center gap-4">
-                    <a href="create_ticket.php" class="gradient-bg text-white py-3 px-8 rounded-lg font-medium shadow-lg hover:opacity-90 transition">
+                    <a href="create_ticket.php" class="gradient-bg text-white py-3 px-8 rounded-lg font-medium shadow-lg hover:opacity-90 transition text-lg">
                         <?= t('create_ticket', $translations, $lang) ?>
                     </a>
-                    <a href="yourticket.php" class="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 py-3 px-8 rounded-lg font-medium hover:bg-indigo-50 dark:hover:bg-gray-700 transition">
+                    <a href="yourticket.php" class="bg-white dark:bg-gray-800 text-indigo-600 dark:text-indigo-400 border border-indigo-600 dark:border-indigo-400 py-3 px-8 rounded-lg font-medium hover:bg-indigo-50 dark:hover:bg-gray-700 transition text-lg">
                         <?= t('my_tickets', $translations, $lang) ?>
                     </a>
                 </div>
@@ -129,56 +146,39 @@ body {
                     <?= t('why_choose_us', $translations, $lang) ?>
                 </h3>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-6xl mx-auto">
                     <?php
                     $features = [
                         [
-                            'icon' => 'fas fa-rocket', // Exemple d'icône
+                            'icon' => 'fas fa-rocket',
                             'title' => t('feature_1_title', $translations, $lang),
                             'text' => t('feature_1_text', $translations, $lang)
                         ],
                         [
-                            'icon' => 'fas fa-shield-alt', // Exemple d'icône
+                            'icon' => 'fas fa-shield-alt',
                             'title' => t('feature_2_title', $translations, $lang),
                             'text' => t('feature_2_text', $translations, $lang)
                         ],
                         [
-                            'icon' => 'fas fa-headset', // Exemple d'icône
+                            'icon' => 'fas fa-headset',
                             'title' => t('feature_3_title', $translations, $lang),
                             'text' => t('feature_3_text', $translations, $lang)
                         ]
                     ];
 
                     foreach ($features as $feature): ?>
-                        <div class="feature-card dark:bg-gray-700 p-6 rounded-xl shadow-sm">
-                            <div class="h-12 w-12 rounded-lg gradient-bg flex items-center justify-center text-white mb-4">
-                                <i class="<?= $feature['icon'] ?> text-xl"></i>
+                        <div class="feature-card dark:bg-gray-700 p-8 rounded-xl">
+                            <div class="h-16 w-16 rounded-lg gradient-bg flex items-center justify-center text-white mb-6 mx-auto">
+                                <i class="<?= $feature['icon'] ?> text-2xl"></i>
                             </div>
-                            <h4 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">
+                            <h4 class="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 text-center">
                                 <?= $feature['title'] ?>
                             </h4>
-                            <p class="text-gray-600 dark:text-gray-400">
+                            <p class="text-gray-600 dark:text-gray-400 text-center">
                                 <?= $feature['text'] ?>
                             </p>
                         </div>
                     <?php endforeach; ?>
-                </div>
-            </div>
-        </section>
-
-        <!-- CTA Section -->
-        <section class="py-16">
-            <div class="container mx-auto px-4 max-w-4xl">
-                <div class="cta-soft rounded-2xl p-8 md:p-12 text-center transition-colors duration-200">
-                    <h3 class="text-3xl font-bold mb-4">
-                        <?= t('need_help_now', $translations, $lang) ?>
-                    </h3>
-                    <p class="text-lg mb-8" style="color:inherit;">
-                        <?= t('help_description', $translations, $lang) ?>
-                    </p>
-                    <a href="create_ticket.php" class="cta-btn py-3 px-8 rounded-lg font-medium shadow-lg transition">
-                        <?= t('create_ticket_now', $translations, $lang) ?>
-                    </a>
                 </div>
             </div>
         </section>
@@ -204,14 +204,6 @@ body {
                     mobileMenu.classList.add('hidden');
                 });
             }
-
-            // Gestion du thème (harmonisé avec header.php)
-            const html = document.documentElement;
-            let savedTheme = localStorage.getItem('theme');
-            if (!savedTheme) {
-                savedTheme = '<?= $theme ?>';
-            }
-            html.classList.toggle('dark', savedTheme === 'dark');
         });
     </script>
 </body>

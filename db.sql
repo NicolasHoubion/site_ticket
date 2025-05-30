@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Hôte : localhost:8889
--- Généré le : jeu. 08 mai 2025 à 07:39
+-- Généré le : jeu. 29 mai 2025 à 11:37
 -- Version du serveur : 8.0.40
 -- Version de PHP : 8.3.14
 
@@ -175,14 +175,12 @@ CREATE TABLE `Users` (
 --
 
 INSERT INTO `Users` (`Id`, `Role_id`, `Username`, `Firstname`, `Password`, `mail`, `Image`, `Status`, `Created_at`, `Deleted_at`, `Updated_at`, `Created_by`) VALUES
-(1, 1, 'nico', 'nico', '$2y$10$aDRmRyyK.qMu2s.UMSj21OfcXHrO1JQpQwPwmWSQ.UGpoGq/KK8s.', 'nico281107@gmail.com', '680d9584b53da.jpg', 'Y', '2025-04-07 18:24:21', NULL, NULL, NULL),
-(5, 2, 'max', 'max', '$2y$10$Edyr0m2Q1xZLyx6jHGIaruV.UQdu7ZbxCwctLPbLLCUo1lXEQNxPi', 'max@gmail.com', NULL, 'N', '2025-04-07 23:40:26', NULL, NULL, NULL),
-(7, 2, 'jenni12', 'Jennifer Singh', '$2y$10$yW7ppCz2xKpuETbitPDjTehEXwBREg.3voX8jzpExkY3y4G4Nfxwu', 'jenniraj12@hotmail.com', NULL, 'Y', '2025-04-18 09:16:34', NULL, NULL, NULL),
+(1, 1, 'nico', 'nico', '$2y$10$aDRmRyyK.qMu2s.UMSj21OfcXHrO1JQpQwPwmWSQ.UGpoGq/KK8s.', 'nico281107@gmail.com', '6825a16e3c209.jpg', 'Y', '2025-04-07 18:24:21', NULL, NULL, NULL),
 (8, 3, 'adrien', 'adrien', '$2y$10$Ma0euB6Nku6gNoYFQpxe/.EwluAcjUXrp9v/Hup3UMEmwl6t.jVfC', 'adrien@gmail.com', '680b42597d7e6.jpg', 'Y', '2025-04-18 12:20:31', NULL, NULL, NULL),
-(9, 2, 'jean', 'jean', '$2y$10$30jolXMeID76yK030o2D.eML8uJ5MH..7gstLxcjbteB3DZ5FaVT2', 'jean@gmail.com', '680a23f977e07.jpg', 'Y', '2025-04-18 12:54:23', NULL, NULL, NULL),
 (10, 2, 'nico7600', 'nico7600', '$2y$10$enTlyrvU.yPM/82bOTrr9eAoAU9U67mkDutQeGV/ATSq8.0AozbXm', 'nico7600@gmail.com', NULL, 'Y', '2025-04-24 11:46:53', NULL, NULL, NULL),
-(11, 2, 'Shanni', 'Shanni', '$2y$10$Qx.jsUGnYG/pBPEOuBT.VuShp1iBMJ1lW4BQHq4H.Fni2QgpsHuOG', 'Shanni@gmail.com', NULL, 'Y', '2025-04-24 11:48:51', NULL, NULL, NULL),
-(13, 4, 'maxence', 'maxence', '$2y$10$k2GWcbIdZLctZd799bP7uOjkRiCCFRiVjsSDiAz8H7EhbX4OlKKcy', 'maxence@gmail.com', NULL, 'Y', '2025-05-05 16:28:39', NULL, NULL, NULL);
+(19, 2, 'Shanni', 'Shanni', '$2y$10$5APTQNreL6r4j4jnLYJmg.BxQSe9RNM2/ANbgnEHtxD1fLX.7K6Oy', 'Shanni@gmail.com', NULL, 'Y', '2025-05-26 07:40:48', NULL, NULL, NULL),
+(20, 2, 'jean', 'jean', '$2y$10$oMpWbzDd6/I6Abiejwxsbe624gXy35VCh.Sdx34aYDJWHbdsYVKom', 'jean@gmail.com', NULL, 'Y', '2025-05-26 07:40:59', NULL, NULL, NULL),
+(21, 2, 'noémie', 'noémie', '$2y$10$cOqBBmmgc5TsycIl7mIfHOtf9qbSQ76bQpYDQWuK.VB1ng4nNxTvC', 'noemie@gmail.com', NULL, 'Y', '2025-05-26 07:41:46', NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -205,12 +203,8 @@ INSERT INTO `User_Settings` (`user_id`, `setting_key`, `setting_value`) VALUES
 (1, 'theme', 'dark'),
 (8, 'language', 'fr'),
 (8, 'theme', 'light'),
-(9, 'language', 'fr'),
-(9, 'theme', 'light'),
 (10, 'language', 'fr'),
-(10, 'theme', 'light'),
-(11, 'language', 'fr'),
-(11, 'theme', 'light');
+(10, 'theme', 'light');
 
 --
 -- Index pour les tables déchargées
@@ -275,7 +269,7 @@ ALTER TABLE `User_Settings`
 -- AUTO_INCREMENT pour la table `messages`
 --
 ALTER TABLE `messages`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=109;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=149;
 
 --
 -- AUTO_INCREMENT pour la table `Permissions`
@@ -299,13 +293,13 @@ ALTER TABLE `Roles`
 -- AUTO_INCREMENT pour la table `Ticket`
 --
 ALTER TABLE `Ticket`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=81;
 
 --
 -- AUTO_INCREMENT pour la table `Users`
 --
 ALTER TABLE `Users`
-  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `Id` int NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- Contraintes pour les tables déchargées

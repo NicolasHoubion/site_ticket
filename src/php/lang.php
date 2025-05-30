@@ -15,9 +15,13 @@ function getLanguage($db, $user_id = null)
     }
 }
 
-function getTheme($db, $user_id) {
-    if ($user_id === 0) return 'light'; // Utilisateur non connecté
-    
+function getTheme($db, $user_id)
+{
+    // Pour les utilisateurs non connectés, utiliser le cookie ou 'light' par défaut
+    if ($user_id === 0) {
+        return $_COOKIE['theme_preference'] ?? 'light';
+    }
+
     try {
         $stmt = $db->prepare("SELECT setting_value 
                              FROM User_Settings 
@@ -25,7 +29,7 @@ function getTheme($db, $user_id) {
                              AND setting_key = 'theme'");
         $stmt->execute([$user_id]);
         $result = $stmt->fetchColumn();
-        
+
         // Validation stricte
         return in_array($result, ['light', 'dark']) ? $result : 'light';
     } catch (PDOException $e) {
@@ -158,6 +162,10 @@ $translations = [
         'confirm_delete_ticket' => 'Êtes-vous sûr de vouloir supprimer ce ticket ?',
         'confirm_delete_user' => 'Êtes-vous sûr de vouloir supprimer cet utilisateur ?',
         'contact_support' => 'Contacter le support',
+        'profile_updated' => 'Profil mis à jour avec succès',
+        'support_availability' => 'Disponibilité du support',
+        'satisfaction_rate' => 'Taux de satisfaction',
+        'avg_response_time' => 'Temps de réponse moyen',
     ],
 
     // ENGLISH TRANSLATE
@@ -278,6 +286,10 @@ $translations = [
         'confirm_delete_ticket' => 'Are you sure you want to delete this ticket?',
         'confirm_delete_user' => 'Are you sure you want to delete this user?',
         'contact_support' => 'Contact Support',
+        'profile_updated' => 'Profile updated successfully',
+        'support_availability' => 'Support Availability',
+        'satisfaction_rate' => 'Satisfaction Rate',
+        'avg_response_time' => 'Average Response Time',
     ],
 
     // DUTCH TRANSLATE
@@ -400,6 +412,10 @@ $translations = [
         'confirm_delete_ticket' => 'Weet u zeker dat u dit ticket wilt verwijderen?',
         'comfirm_delete_user' => 'Weet u zeker dat u deze gebruiker wilt verwijderen?',
         'contact_support' => 'Neem contact op met de ondersteuning',
+        'profile_updated' => 'Profiel succesvol bijgewerkt',
+        'support_availability' => 'Beschikbaarheid van ondersteuning',
+        'satisfaction_rate' => 'Tevredenheidspercentage',
+        'avg_response_time' => 'Gemiddelde responstijd',
     ],
 
     // MANDARIN TRANSLATE
@@ -522,6 +538,10 @@ $translations = [
         'confirm_delete_ticket' => '您确定要删除此工单吗？',
         'confirm_delete_user' => '您确定要删除此用户吗？',
         'contact_support' => '联系支持',
+        'profile_updated' => '个人资料已成功更新',
+        'support_availability' => '支持可用性',
+        'satisfaction_rate' => '满意度',
+        'avg_response_time' => '平均响应时间',
     ],
     // PUNJABI TRANSLATE
     'pa' => [
@@ -643,6 +663,10 @@ $translations = [
         'confirm_delete_ticket' => 'ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਹੋ ਕਿ ਤੁਸੀਂ ਇਸ ਟਿਕਟ ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?',
         'confirm_delete_user' => 'ਕੀ ਤੁਸੀਂ ਯਕੀਨੀ ਹੋ ਕਿ ਤੁਸੀਂ ਇਸ ਉਪਭੋਗਤਾ ਨੂੰ ਹਟਾਉਣਾ ਚਾਹੁੰਦੇ ਹੋ?',
         'contact_support' => 'ਸਹਾਇਤਾ ਨਾਲ ਸੰਪਰਕ ਕਰੋ',
+        'profile_updated' => 'ਪ੍ਰੋਫਾਈਲ ਸਫਲਤਾਪੂਰਕ ਅੱਪਡੇਟ ਕੀਤਾ ਗਿਆ',
+        'support_availability' => 'ਸਹਾਇਤਾ ਉਪਲਬਧਤਾ',
+        'satisfaction_rate' => 'ਸੰਤੁਸ਼ਟੀ ਦਰ',
+        'avg_response_time' => 'ਔਸਤ ਪ੍ਰਤੀਕਿਰਿਆ ਸਮਾਂ',
     ],
 
     // SPANISH TRANSLATE
@@ -765,6 +789,10 @@ $translations = [
         'confirm_delete_ticket' => '¿Estás seguro de que deseas eliminar este ticket?',
         'confirm_delete_user' => '¿Estás seguro de que deseas eliminar este usuario?',
         'contact_support' => 'Contactar soporte',
+        'profile_updated' => 'Perfil actualizado con éxito',
+        'support_availability' => 'Disponibilidad de soporte',
+        'satisfaction_rate' => 'Tasa de satisfacción',
+        'avg_response_time' => 'Tiempo promedio de respuesta',
     ],
 ];
 
