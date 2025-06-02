@@ -3,6 +3,113 @@ session_start();
 require_once __DIR__ . '/src/php/dbconn.php';
 require_once __DIR__ . '/src/php/lang.php';
 
+// --- GESTION AJAX (avant tout HTML) ---
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['ajax']) && $_POST['ajax'] == '1') {
+    // DEBUG TEMPORAIRE : afficher les erreurs PHP (à retirer en prod)
+    ini_set('display_errors', 1);
+    ini_set('display_startup_errors', 1);
+    error_reporting(E_ALL);
+
+    // Récupération des préférences utilisateur
+    $user_id = $_SESSION['id'] ?? 0;
+
+    // --- ✅ SOLUTION : AJOUTE CETTE LIGNE CI-DESSOUS ---
+    // On charge la variable $translations pour que le composant puisse l'utiliser.
+    // if (function_exists('t')) {
+    //     $translations = t($lang);
+    // }
+    // Correction : $translations est déjà défini dans lang.php, il suffit de l'utiliser tel quel
+
+    // Vérification des permissions
+    $currentUserPermissions = [];
+    if ($user_id > 0) {
+        try {
+            $stmt = $db->prepare("
+                SELECT p.Name 
+                FROM Users u
+                JOIN Roles r ON u.Role_id = r.Id
+                JOIN Permission_Roles pr ON r.Id = pr.Role_id
+                JOIN Permissions p ON pr.Permission_id = p.Id
+                WHERE u.Id = :user_id
+            ");
+            $stmt->bindValue(':user_id', $user_id);
+            $stmt->execute();
+            $currentUserPermissions = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        } catch (PDOException $e) {
+            $currentUserPermissions = [];
+        }
+    }
+
+    // Récupérer le terme de recherche depuis POST
+    $searchTermRaw = isset($_POST['search']) ? trim($_POST['search']) : '';
+    $searchTerm = $searchTermRaw !== '' ? "%{$searchTermRaw}%" : null;
+
+    // Requête SQL pour les utilisateurs
+    $sql = "
+    SELECT 
+        u.Id AS user_id,
+        u.Username,
+        u.Firstname,
+        u.mail,
+        r.Name AS role_name,
+        GROUP_CONCAT(DISTINCT p.Name SEPARATOR ', ') AS permissions
+    FROM Users u
+    JOIN Roles r ON u.Role_id = r.Id
+    LEFT JOIN Permission_Roles pr ON r.Id = pr.Role_id
+    LEFT JOIN Permissions p ON pr.Permission_id = p.Id
+    WHERE u.Deleted_at IS NULL
+";
+
+    if ($searchTerm) {
+        $sql .= " AND (
+        u.Username LIKE :search1 
+        OR u.mail LIKE :search2 
+        OR u.Firstname LIKE :search3
+    )";
+    }
+
+    $sql .= " GROUP BY u.Id"; // Regroupement par ID utilisateur
+
+    // Exécution
+    try {
+        $queryUsers = $db->prepare($sql);
+        if ($searchTerm) {
+            $queryUsers->bindValue(':search1', $searchTerm);
+            $queryUsers->bindValue(':search2', $searchTerm);
+            $queryUsers->bindValue(':search3', $searchTerm);
+        }
+        $queryUsers->execute();
+        $results = $queryUsers->fetchAll();
+
+        $users = [];
+        foreach ($results as $row) {
+            $id = $row['user_id'];
+            $permissions = [];
+            if (!empty($row['permissions'])) {
+                $permissions = explode(', ', $row['permissions']);
+            }
+            $users[$id] = [
+                'user_id' => $id,
+                'username' => $row['Username'],
+                'firstname' => $row['Firstname'],
+                'email' => $row['mail'],
+                'role' => $row['role_name'],
+                'permissions' => $permissions
+            ];
+        }
+    } catch (PDOException $e) {
+        error_log("Erreur SQL: " . $e->getMessage());
+        $users = [];
+    }
+
+    // Correction : définir $canManageUsers pour le composant
+    $canManageUsers = hasPermission('Manage Users', $currentUserPermissions) || hasPermission('Access Admin Panel', $currentUserPermissions);
+
+    // Inclure uniquement le contenu de la section utilisateurs (HTML)
+    include __DIR__ . '/src/components/admin_users_section_content.php';
+    exit;
+}
+
 // Récupération des préférences
 $user_id = $_SESSION['id'] ?? 0;
 $lang = getLanguage($db, $user_id);
@@ -34,8 +141,11 @@ function hasPermission($permission, $permissions)
     return is_array($permissions) && in_array($permission, $permissions);
 }
 
+// AJOUTER ICI : définition de $canManageUsers pour le rendu initial
+$canManageUsers = hasPermission('Manage Users', $currentUserPermissions) || hasPermission('Access Admin Panel', $currentUserPermissions);
+
 // Vérifier si l'utilisateur a accès à cette page
-if (!hasPermission('Manage Users', $currentUserPermissions) && !hasPermission('Admin Access', $currentUserPermissions)) {
+if (!hasPermission('Manage Users', $currentUserPermissions) && !hasPermission('Access Admin Panel', $currentUserPermissions)) {
     header("Location: index.php");
     exit;
 }
@@ -44,7 +154,7 @@ if (!hasPermission('Manage Users', $currentUserPermissions) && !hasPermission('A
 if (
     $_SERVER['REQUEST_METHOD'] === 'POST'
     && isset($_POST['delete_ticket_id'])
-    && (hasPermission('Delete Tickets', $currentUserPermissions) || hasPermission('Admin Access', $currentUserPermissions))
+    && (hasPermission('Delete Tickets', $currentUserPermissions) || hasPermission('Access Admin Panel', $currentUserPermissions))
 ) {
     $ticketIdToDelete = intval($_POST['delete_ticket_id']);
     try {
@@ -109,22 +219,23 @@ $sql = "
         u.Firstname,
         u.mail,
         r.Name AS role_name,
-        (SELECT GROUP_CONCAT(p.Name SEPARATOR ', ') 
-         FROM Permission_Roles pr 
-         LEFT JOIN Permissions p ON pr.Permission_id = p.Id 
-         WHERE pr.Role_id = r.Id) AS permissions
+        GROUP_CONCAT(DISTINCT p.Name SEPARATOR ', ') AS permissions
     FROM Users u
     JOIN Roles r ON u.Role_id = r.Id
+    LEFT JOIN Permission_Roles pr ON r.Id = pr.Role_id
+    LEFT JOIN Permissions p ON pr.Permission_id = p.Id
     WHERE u.Deleted_at IS NULL
 ";
 
 if ($searchTerm) {
     $sql .= " AND (
         u.Username LIKE :search1 
-        OR SUBSTRING_INDEX(u.mail, '@', 1) LIKE :search2 
+        OR u.mail LIKE :search2 
         OR u.Firstname LIKE :search3
     )";
 }
+
+$sql .= " GROUP BY u.Id"; // Ajoutez cette ligne
 
 // Exécution
 try {
@@ -154,6 +265,7 @@ try {
         ];
     }
 } catch (PDOException $e) {
+    error_log("Erreur SQL: " . $e->getMessage());
     $users = [];
 }
 ?>
@@ -249,6 +361,32 @@ try {
         .cta-soft .cta-btn:hover {
             opacity: 0.9;
         }
+
+        /* Nouveaux styles pour indicateur de chargement */
+        .loading-indicator {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .search-container {
+            position: relative;
+        }
+
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -338,7 +476,7 @@ try {
                                                 <a href="ticket_view.php?id=<?= $ticket['Id'] ?>" class="gradient-bg text-white px-4 py-2 rounded-lg shadow-sm hover:opacity-90 transition mr-2">
                                                     <i class="fas fa-eye mr-1"></i> <?= t('view', $translations, $lang) ?>
                                                 </a>
-                                                <?php if (hasPermission('Delete Tickets', $currentUserPermissions) || hasPermission('Admin Access', $currentUserPermissions)): ?>
+                                                <?php if (hasPermission('Delete Tickets', $currentUserPermissions) || hasPermission('Access Admin Panel', $currentUserPermissions)): ?>
                                                     <form method="POST" action="admin.php" class="inline-block" onsubmit="return confirm('<?= t('confirm_delete_ticket', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer ce ticket ? Cette action est irréversible.' ?>');">
                                                         <input type="hidden" name="delete_ticket_id" value="<?= $ticket['Id'] ?>">
                                                         <button type="submit" class="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded-lg shadow-sm transition">
@@ -370,131 +508,44 @@ try {
                     <h2 class="text-2xl font-bold dark:text-gray-200">
                         <i class="fas fa-users mr-2 text-indigo-500 dark:text-indigo-400"></i><?= t('user_management', $translations, $lang) ?>
                     </h2>
-                    <span class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 text-sm font-semibold px-3 py-1 rounded-full">
+                    <span id="user-count" class="bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 dark:text-indigo-300 text-sm font-semibold px-3 py-1 rounded-full">
                         <?= count($users) ?> <?= t('users', $translations, $lang) ?>
                     </span>
                 </div>
 
                 <!-- Formulaire de recherche -->
                 <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden mb-8 p-6">
-                    <form method="GET" class="flex flex-wrap gap-4">
-                        <div class="flex-1 min-w-[200px]">
+                    <form id="search-form" class="flex flex-wrap gap-4">
+                        <div class="flex-1 min-w-[200px] search-container">
                             <div class="relative">
                                 <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
                                     <i class="fas fa-search text-gray-400 dark:text-gray-500"></i>
                                 </div>
-                                <input type="text" name="search" value="<?= htmlspecialchars($searchTermRaw) ?>"
+                                <input type="text" id="search-input" name="search" value="<?= htmlspecialchars($searchTermRaw) ?>"
                                     placeholder="<?= t('search_users', $translations, $lang) ?>"
                                     class="bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 text-gray-900 dark:text-gray-100 text-sm rounded-lg focus:ring-indigo-500 focus:border-indigo-500 block w-full pl-10 p-2.5">
+                                <div id="loading-indicator" class="loading-indicator hidden">
+                                    <i class="fas fa-spinner spinner text-indigo-500 dark:text-indigo-400"></i>
+                                </div>
                             </div>
                         </div>
                         <div class="flex gap-2">
                             <button type="submit" class="gradient-bg text-white py-2.5 px-5 rounded-lg font-medium shadow-sm hover:opacity-90 transition">
                                 <i class="fas fa-search mr-1"></i> <?= t('search', $translations, $lang) ?>
                             </button>
-                            <a href="admin.php#users" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2.5 px-5 rounded-lg font-medium shadow-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition">
+                            <a href="#" id="reset-search" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 py-2.5 px-5 rounded-lg font-medium shadow-sm hover:bg-gray-300 dark:hover:bg-gray-600 transition">
                                 <i class="fas fa-redo mr-1"></i> <?= t('reset', $translations, $lang) ?>
                             </a>
                         </div>
                     </form>
                 </div>
 
-                <!-- Liste des utilisateurs -->
-                <?php if (count($users) > 0 && (hasPermission('Manage Users', $currentUserPermissions) || hasPermission('Admin Access', $currentUserPermissions))): ?>
-                    <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                        <?php foreach ($users as $user): ?>
-                            <?php
-                            $roleName = strtolower($user['role']);
-                            switch ($roleName) {
-                                case 'admin':
-                                    $badgeClass = 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 border border-red-200 dark:border-red-700';
-                                    $iconClass = 'fas fa-crown text-red-500';
-                                    break;
-                                case 'helper':
-                                    $badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 border border-purple-200 dark:border-purple-700';
-                                    $iconClass = 'fas fa-hands-helping text-purple-500';
-                                    break;
-                                case 'dev':
-                                    $badgeClass = 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700';
-                                    $iconClass = 'fas fa-code text-emerald-500';
-                                    break;
-                                default:
-                                    $badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 border border-blue-200 dark:border-blue-700';
-                                    $iconClass = 'fas fa-user text-blue-500';
-                                    break;
-                            }
-                            ?>
-                            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden transition-transform duration-300 hover:-translate-y-1 hover:shadow-xl">
-                                <div class="gradient-bg p-6 flex justify-between items-center">
-                                    <div class="flex items-center">
-                                        <div class="h-12 w-12 rounded-full bg-white/20 flex items-center justify-center text-white">
-                                            <i class="<?= $iconClass ?> text-xl"></i>
-                                        </div>
-                                        <div class="ml-4">
-                                            <h3 class="text-xl font-bold text-white"><?= htmlspecialchars($user['username']) ?></h3>
-                                            <p class="text-indigo-100 text-sm">
-                                                <?= !empty($user['firstname']) ? htmlspecialchars($user['firstname']) : '' ?>
-                                                <?= !empty($user['email']) ? '- ' . htmlspecialchars($user['email']) : '' ?>
-                                            </p>
-                                        </div>
-                                    </div>
-                                    <span class="px-3 py-1 rounded-full text-xs font-semibold <?= $badgeClass; ?> whitespace-nowrap">
-                                        <?= htmlspecialchars($user['role']) ?>
-                                    </span>
-                                </div>
-                                <div class="p-6">
-                                    <div class="mb-4">
-                                        <h4 class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
-                                            <?= t('permissions', $translations, $lang) ?>
-                                        </h4>
-                                        <div class="flex flex-wrap gap-2">
-                                            <?php foreach ($user['permissions'] as $permission): ?>
-                                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200">
-                                                    <?= htmlspecialchars($permission) ?>
-                                                </span>
-                                            <?php endforeach; ?>
-                                        </div>
-                                    </div>
-                                    <div class="flex justify-end gap-2 pt-4 border-t border-gray-200 dark:border-gray-700">
-                                        <a href="edit_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-indigo-500 hover:bg-indigo-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors">
-                                            <i class="fas fa-edit mr-1"></i> <?= t('edit', $translations, $lang) ?>
-                                        </a>
-                                        <a href="delete_user.php?id=<?= $user['user_id'] ?>" class="inline-flex items-center px-4 py-2 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg shadow-sm transition-colors delete-user-btn" onclick="return confirm('<?= t('confirm_delete_user', $translations, $lang) ?? 'Êtes-vous sûr de vouloir supprimer cet utilisateur ? Cette action est irréversible.' ?>');">
-                                            <i class="fas fa-trash-alt mr-1"></i> <?= t('delete', $translations, $lang) ?>
-                                        </a>
-                                    </div>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                <?php else: ?>
-                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg overflow-hidden p-12 text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500 dark:text-indigo-400">
-                            <i class="fas fa-users text-2xl"></i>
-                        </div>
-                        <h3 class="text-xl font-medium text-gray-900 dark:text-gray-200 mb-2">
-                            <?= t('no_users_found', $translations, $lang) ?? 'Aucun utilisateur trouvé' ?>
-                        </h3>
-                        <p class="text-gray-500 dark:text-gray-400 mb-6">
-                            <?= t('no_users_permission', $translations, $lang) ?? 'Aucun utilisateur ne correspond à vos critères de recherche.' ?>
-                        </p>
-                        <?php if (!empty($searchTermRaw)): ?>
-                            <a href="admin.php#users" class="gradient-bg text-white py-2.5 px-5 rounded-lg font-medium shadow-sm hover:opacity-90 transition">
-                                <i class="fas fa-redo mr-1"></i> <?= t('clear_search', $translations, $lang) ?? 'Effacer la recherche' ?>
-                            </a>
-                        <?php endif; ?>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Bouton d'ajout d'utilisateur -->
-                <?php if (hasPermission('Admin Access', $currentUserPermissions)): ?>
-                    <div class="mt-8 text-center">
-                        <a href="add_user.php" class="gradient-bg text-white py-3 px-8 rounded-lg font-medium shadow-lg hover:opacity-90 transition inline-flex items-center">
-                            <i class="fas fa-user-plus mr-2"></i> <?= t('add_user', $translations, $lang) ?? 'Ajouter un utilisateur' ?>
-                        </a>
-                    </div>
-                <?php endif; ?>
+                <!-- Conteneur pour les résultats de recherche -->
+                <div id="search-results">
+                    <?php include __DIR__ . '/src/components/admin_users_section_content.php'; ?>
+                </div>
             </section>
+
         </div>
     </main>
 
@@ -502,107 +553,116 @@ try {
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
-            // Navigation par onglets
-            const tabLinks = document.querySelectorAll('a[href^="#"]');
-            const sections = document.querySelectorAll('section[id]');
+            // ... (code existant) ...
 
-            function setActiveTab(targetId) {
-                tabLinks.forEach(link => {
-                    const isActive = link.getAttribute('href') === `#${targetId}`;
+            // Nouveau code pour la recherche AJAX
+            const searchForm = document.getElementById('search-form');
+            const searchInput = document.getElementById('search-input');
+            const resetSearchBtn = document.getElementById('reset-search');
+            const searchResults = document.getElementById('search-results');
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const userCountSpan = document.getElementById('user-count');
 
-                    if (isActive) {
-                        link.classList.add('border-indigo-600', 'dark:border-indigo-500', 'text-indigo-600', 'dark:text-indigo-500');
-                        link.classList.remove('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
-                        link.setAttribute('aria-current', 'page');
-                    } else {
-                        link.classList.remove('border-indigo-600', 'dark:border-indigo-500', 'text-indigo-600', 'dark:text-indigo-500');
-                        link.classList.add('border-transparent', 'hover:text-gray-600', 'hover:border-gray-300');
-                        link.removeAttribute('aria-current');
-                    }
-                });
+            // Fonction pour charger les résultats de recherche
+            function loadSearchResults(searchTerm) {
+                loadingIndicator.classList.remove('hidden');
+                const formData = new FormData();
+                formData.append('search', searchTerm);
+                formData.append('ajax', '1');
+                fetch('admin.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(html => {
+                        searchResults.innerHTML = html;
+                        // Correction : compter les lignes utilisateurs (tr ou .user-row selon votre HTML)
+                        const newUserCount = searchResults.querySelectorAll('tr.user-row').length;
+                        if (userCountSpan) {
+                            // Correction : traduction dynamique du mot "utilisateurs"
+                            userCountSpan.textContent = `${newUserCount} <?= t('users', $translations, $lang) ?>`;
+                        }
+                        attachDeleteHandlers();
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la recherche:', error);
+                        searchResults.innerHTML = `<div class="bg-red-100 dark:bg-red-900/20 border border-red-400 dark:border-red-600 text-red-700 dark:text-red-300 px-4 py-3 rounded mb-6 text-center">
+                <i class="fas fa-exclamation-triangle mr-2"></i><?= t('search_error', $translations, $lang) ?? 'Erreur lors de la recherche.' ?>
+            </div>`;
+                    })
+                    .finally(() => {
+                        loadingIndicator.classList.add('hidden');
+                    });
             }
 
-            tabLinks.forEach(link => {
-                link.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    const targetId = link.getAttribute('href').substring(1);
+            // Gestionnaire de soumission du formulaire
+            searchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                loadSearchResults(searchInput.value);
+            });
 
-                    history.pushState(null, null, `#${targetId}`);
-                    setActiveTab(targetId);
+            // Gestionnaire de réinitialisation
+            resetSearchBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                searchInput.value = '';
+                loadSearchResults('');
+            });
 
-                    document.getElementById(targetId).scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'start'
+            // Gestionnaire d'entrée pour la recherche instantanée (avec debounce)
+            let searchTimeout;
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    loadSearchResults(searchInput.value);
+                }, 300);
+            });
+
+            // Fonction pour réattacher les gestionnaires de suppression
+            function attachDeleteHandlers() {
+                document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        if (!confirm('<?= t('confirm_delete_user', $translations, $lang) ?>')) {
+                            e.preventDefault();
+                        }
                     });
                 });
-            });
-
-            const hash = window.location.hash.substring(1);
-            if (hash && document.getElementById(hash)) {
-                setActiveTab(hash);
             }
 
-            const menuBtn = document.querySelector('.mobile-menu-button');
-            const mobileMenu = document.getElementById('mobile-menu');
-
-            if (menuBtn && mobileMenu) {
-                menuBtn.addEventListener('click', () => {
-                    mobileMenu.classList.toggle('hidden');
-                });
-            }
-
-            const themeToggle = document.getElementById('theme-toggle');
-            if (themeToggle) {
-                themeToggle.addEventListener('click', () => {
-                    document.documentElement.classList.toggle('dark');
-                    const isDark = document.documentElement.classList.contains('dark');
-                    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-                    const moonIcon = themeToggle.querySelector('.fa-moon');
-                    const sunIcon = themeToggle.querySelector('.fa-sun');
-                    moonIcon.classList.toggle('hidden');
-                    sunIcon.classList.toggle('hidden');
-                });
-            }
-
-            const searchInput = document.querySelector('input[name="search"]');
-            if (searchInput) {
-                searchInput.addEventListener('input', debounce(() => {
-                    document.querySelector('form[method="GET"]').submit();
-                }, 300));
-            }
-
-            function debounce(func, wait) {
-                let timeout;
-                return (...args) => {
-                    clearTimeout(timeout);
-                    timeout = setTimeout(() => func.apply(this, args), wait);
-                };
-            }
+            // Attacher initialement les gestionnaires
+            attachDeleteHandlers();
         });
-    </script>
-
-    <script>
-        document.querySelectorAll('.delete-user-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (!confirm('<?= t('confirm_delete_user', $translations, $lang) ?>')) {
-                    e.preventDefault();
-                }
-            });
-        });
-
-        function adjustTableLayout() {
-            const tables = document.querySelectorAll('table');
-            tables.forEach(table => {
-                if (window.innerWidth < 768) {
-                    table.classList.add('responsive-table');
-                } else {
-                    table.classList.remove('responsive-table');
-                }
-            });
+        // Correction : déplacer la fonction loadSearchResults dans le scope global pour clear-search
+        function loadSearchResults(searchTerm) {
+            const loadingIndicator = document.getElementById('loading-indicator');
+            const searchResults = document.getElementById('search-results');
+            const userCountSpan = document.getElementById('user-count');
+            loadingIndicator.classList.remove('hidden');
+            const formData = new FormData();
+            formData.append('search', searchTerm);
+            formData.append('ajax', '1');
+            fetch('admin.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(html => {
+                    searchResults.innerHTML = html;
+                    const newUserCount = searchResults.querySelectorAll('tr.user-row').length;
+                    if (userCountSpan) {
+                        userCountSpan.textContent = `${newUserCount} <?= t('users', $translations, $lang) ?>`;
+                    }
+                })
+                .finally(() => {
+                    loadingIndicator.classList.add('hidden');
+                });
         }
-
-        window.addEventListener('resize', adjustTableLayout);
-        adjustTableLayout();
+        document.addEventListener('click', function(e) {
+            if (e.target && e.target.id === 'clear-search') {
+                e.preventDefault();
+                document.getElementById('search-input').value = '';
+                loadSearchResults('');
+            }
+        });
     </script>
 </body>
 

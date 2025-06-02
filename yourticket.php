@@ -1,7 +1,7 @@
 <?php
 session_start();
-require_once './src/php/dbconn.php';
-require_once './src/php/lang.php';
+require_once __DIR__ . '/src/php/dbconn.php';  // Chemin absolu
+require_once __DIR__ . '/src/php/lang.php';    // Chemin absolu
 
 // Récupération des préférences
 $user_id = $_SESSION['id'] ?? 0;
@@ -75,6 +75,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="<?= $theme === 'dark' ? 'dark' : '' ?>">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -106,23 +107,33 @@ try {
   </script>
   <style>
     :root {
-      --gradient-start: #6366f1; /* indigo-500 */
-      --gradient-end: #a5b4fc;   /* indigo-200 */
-      --cta-bg: #f9fafb;         /* gray-50, plus doux */
-      --cta-text: #312e81;       /* indigo-900 */
-      --section-bg: #f9fafb;     /* gray-50, plus doux */
-      --feature-bg: #f9fafb;     /* gray-50, plus doux */
-      --body-bg: #f9fafb;        /* gray-50, plus doux */
+      --gradient-start: #6366f1;
+      /* indigo-500 */
+      --gradient-end: #a5b4fc;
+      /* indigo-200 */
+      --cta-bg: #f9fafb;
+      /* gray-50, plus doux */
+      --cta-text: #312e81;
+      /* indigo-900 */
+      --section-bg: #f9fafb;
+      /* gray-50, plus doux */
+      --feature-bg: #f9fafb;
+      /* gray-50, plus doux */
+      --body-bg: #f9fafb;
+      /* gray-50, plus doux */
     }
 
     .dark {
       --gradient-start: #3730A3;
       --gradient-end: #6D28D9;
-      --cta-bg: #1e293b;         /* slate-800 */
+      --cta-bg: #1e293b;
+      /* slate-800 */
       --cta-text: #fff;
       --section-bg: #1e293b;
-      --feature-bg: #374151;     /* gray-700 */
-      --body-bg: #111827;        /* gray-900 */
+      --feature-bg: #374151;
+      /* gray-700 */
+      --body-bg: #111827;
+      /* gray-900 */
     }
 
     body {
@@ -147,11 +158,13 @@ try {
 
     .feature-card {
       background: var(--feature-bg);
-      border: 1px solid #e5e7eb; /* Ajout d'une bordure pour les cartes */
+      border: 1px solid #e5e7eb;
+      /* Ajout d'une bordure pour les cartes */
     }
 
     .cta-soft {
-      background: var(--body-bg); /* même couleur que le body */
+      background: var(--body-bg);
+      /* même couleur que le body */
       color: var(--cta-text);
     }
 
@@ -165,8 +178,9 @@ try {
     }
   </style>
 </head>
-<body class="min-h-screen transition-colors duration-200">
-  <?php require_once './src/components/header.php'; ?>
+
+<body class="flex flex-col min-h-screen transition-colors duration-200">
+  <?php require_once __DIR__ . '/src/components/header.php'; ?> <!-- Chemin absolu -->
 
   <main class="flex-grow py-12 px-4">
     <div class="container mx-auto max-w-7xl">
@@ -232,11 +246,11 @@ try {
                   </p>
                   <?php if (in_array($user_role, ['admin', 'helper']) || $t['User_id'] == $user_id): ?>
                     <form method="post" class="inline-block"
-                          onsubmit="return confirm('<?= t('confirm_delete_ticket', $translations, $lang) ?>');">
+                      onsubmit="return confirm('<?= t('confirm_delete_ticket', $translations, $lang) ?>');">
                       <input type="hidden" name="delete_ticket_id" value="<?= $t['Id'] ?>">
                       <button type="submit"
-                              class="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition"
-                              title="<?= t('delete', $translations, $lang) ?>">
+                        class="text-red-500 hover:text-red-700 dark:hover:text-red-400 transition"
+                        title="<?= t('delete', $translations, $lang) ?>">
                         <i class="fas fa-trash-alt"></i>
                       </button>
                     </form>
@@ -244,7 +258,7 @@ try {
                 </div>
 
                 <a href="ticket_view.php?id=<?= $t['Id'] ?>"
-                   class="gradient-bg text-white block text-center py-2.5 px-6 rounded-lg font-medium shadow-sm hover:opacity-90 transition">
+                  class="gradient-bg text-white block text-center py-2.5 px-6 rounded-lg font-medium shadow-sm hover:opacity-90 transition">
                   <i class="fas fa-comments mr-2"></i>
                   <?= t('view_conversation', $translations, $lang) ?>
                 </a>
@@ -256,6 +270,7 @@ try {
     </div>
   </main>
 
-  <?php require_once './src/components/footer.php'; ?>
+  <?php require_once __DIR__ . '/src/components/footer.php'; ?> <!-- Chemin absolu -->
 </body>
+
 </html>

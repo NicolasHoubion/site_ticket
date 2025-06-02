@@ -166,6 +166,10 @@ $translations = [
         'support_availability' => 'Disponibilité du support',
         'satisfaction_rate' => 'Taux de satisfaction',
         'avg_response_time' => 'Temps de réponse moyen',
+        'no_users_found' => 'Aucun utilisateur trouvé',
+        'clear_search' => 'Effacer la recherche',
+        'users' => 'Utilisateurs',
+        'actions' => 'Actions',
     ],
 
     // ENGLISH TRANSLATE
@@ -290,6 +294,10 @@ $translations = [
         'support_availability' => 'Support Availability',
         'satisfaction_rate' => 'Satisfaction Rate',
         'avg_response_time' => 'Average Response Time',
+        'no_users_found' => 'No users found',
+        'clear_search' => 'Clear Search',
+        'users' => 'Users',
+        'actions' => 'Actions',
     ],
 
     // DUTCH TRANSLATE
@@ -416,6 +424,10 @@ $translations = [
         'support_availability' => 'Beschikbaarheid van ondersteuning',
         'satisfaction_rate' => 'Tevredenheidspercentage',
         'avg_response_time' => 'Gemiddelde responstijd',
+        'no_users_found' => 'Geen gebruikers gevonden',
+        'clear_search' => 'Zoekopdracht wissen',
+        'users' => 'Gebruikers',
+        'actions' => 'Acties',
     ],
 
     // MANDARIN TRANSLATE
@@ -542,6 +554,10 @@ $translations = [
         'support_availability' => '支持可用性',
         'satisfaction_rate' => '满意度',
         'avg_response_time' => '平均响应时间',
+        'no_users_found' => '未找到用户',
+        'clear_search' => '清除搜索',
+        'users' => '用户',
+        'actions' => '操作',
     ],
     // PUNJABI TRANSLATE
     'pa' => [
@@ -667,6 +683,10 @@ $translations = [
         'support_availability' => 'ਸਹਾਇਤਾ ਉਪਲਬਧਤਾ',
         'satisfaction_rate' => 'ਸੰਤੁਸ਼ਟੀ ਦਰ',
         'avg_response_time' => 'ਔਸਤ ਪ੍ਰਤੀਕਿਰਿਆ ਸਮਾਂ',
+        'no_users_found' => 'ਕੋਈ ਉਪਭੋਗਤਾ ਨਹੀਂ ਮਿਲਿਆ',
+        'clear_search' => 'ਖੋਜ ਸਾਫ਼ ਕਰੋ',
+        'users' => 'ਉਪਭੋਗਤਾ',
+        'actions' => 'ਕਾਰਵਾਈਆਂ',
     ],
 
     // SPANISH TRANSLATE
@@ -793,15 +813,20 @@ $translations = [
         'support_availability' => 'Disponibilidad de soporte',
         'satisfaction_rate' => 'Tasa de satisfacción',
         'avg_response_time' => 'Tiempo promedio de respuesta',
+        'no_users_found' => 'No se encontraron usuarios',
+        'clear_search' => 'Limpiar búsqueda',
+        'users' => 'Usuarios',
+        'actions' => 'Acciones',
     ],
 ];
 
 // Fonction de traduction mise à jour pour utiliser la langue globale par défaut
 function t($key, $translations, $lang = 'en')
 {
-    global $lang; // Utiliser la langue globale
-    if (!isset($translations[$lang])) {
-        $lang = 'en'; // Langue par défaut si la langue globale n'est pas définie
+    // Correction : évitez la confusion avec le global $lang
+    $currentLang = $lang;
+    if (!isset($translations[$currentLang])) {
+        $currentLang = 'en';
     }
-    return $translations[$lang][$key] ?? $key;
+    return $translations[$currentLang][$key] ?? $key;
 }

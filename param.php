@@ -99,47 +99,65 @@ require_once 'src/components/header.php';
         }
 
         .language-option {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0.75rem;
+            border-radius: 0.75rem;
+            border: 2px solid transparent;
             background-color: #f9fafb;
-            color: #1f2937;
-            /* Couleur de texte plus foncée */
-            border: 2px solid #e5e7eb;
-            /* Bordure plus visible */
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: center;
         }
 
         .language-option:hover {
-            background-color: #f3f4f6;
-            /* Fond légèrement plus foncé au survol */
+            transform: translateY(-2px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
         }
 
         .language-option.active {
             border-color: #4F46E5;
-            background-color: #e0e7ff;
-            /* Fond plus visible pour l'option active */
-            color: #3730a3;
-            /* Texte plus foncé */
+            background-color: #eef2ff;
         }
 
-        /* Prévisualisation du thème plus visible */
+        .dark .language-option {
+            background-color: #1f2937;
+        }
+
+        .dark .language-option:hover {
+            background-color: #374151;
+        }
+
+        .dark .language-option.active {
+            border-color: #818cf8;
+            background-color: #3730a3;
+        }
+
+        .language-icon {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Texte blanc sous les langues en dark mode */
+        .dark .language-option span {
+            color: #fff !important;
+        }
+
+        /* Style pour la prévisualisation du thème */
         .theme-preview {
             width: 50px;
+            /* Taille légèrement augmentée */
             height: 50px;
+            /* Taille légèrement augmentée */
             border-radius: 50%;
             cursor: pointer;
             transition: all 0.2s ease;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .theme-preview::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            border-radius: 50%;
+            transform: scale(1.1);
+            /* Toujours zoomé de 10% */
             border: 2px solid #d1d5db;
-            transition: all 0.2s ease;
+            /* Bordure constante */
         }
 
         .theme-preview.light {
@@ -150,45 +168,27 @@ require_once 'src/components/header.php';
             background: linear-gradient(135deg, #111827 50%, #3730A3 50%);
         }
 
-        .theme-preview.active::before {
+        .theme-preview.active {
             border-color: #4F46E5;
-            border-width: 3px;
-            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
+            box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
+            /* Effet de halo pour indiquer la sélection */
         }
 
-        .dark .theme-preview::before {
+        .dark .theme-preview {
             border-color: #4b5563;
+            /* Bordure plus visible en dark mode */
         }
 
-        .dark .theme-preview.active::before {
+        .dark .theme-preview.active {
             border-color: #818cf8;
-            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.2);
+            box-shadow: 0 0 0 2px rgba(129, 140, 248, 0.3);
+            /* Effet de halo en dark mode */
         }
 
         /* Effet de survol */
-        .theme-preview:hover::before {
-            border-color: #9ca3af;
-        }
-
-        /* Bouton de sauvegarde plus visible */
-        .save-btn {
-            background: linear-gradient(135deg, #4F46E5 0%, #7C3AED 100%);
-            color: white;
-        }
-
-        .save-btn:hover {
-            opacity: 0.9;
-        }
-
-        /* Amélioration du texte dans le formulaire */
-        .settings-form label {
-            color: #1f2937;
-            /* Texte plus foncé en light mode */
-        }
-
-        .dark .settings-form label {
-            color: #d1d5db;
-            /* Texte clair en dark mode */
+        .theme-preview:hover {
+            transform: scale(1.15);
+            /* Léger zoom supplémentaire au survol */
         }
 
         button[type="submit"] {
@@ -199,6 +199,7 @@ require_once 'src/components/header.php';
 </head>
 
 <body class="min-h-screen bg-gray-50 dark:bg-gray-900 transition-colors duration-200">
+
     <main class="max-w-4xl mx-auto p-6 flex-grow w-full min-h-[calc(100vh-12rem)]">
         <h2 class="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-200 text-center">
             <?= t('personal_settings', $translations, $lang) ?>
@@ -213,7 +214,7 @@ require_once 'src/components/header.php';
             </div>
         <?php endif; ?>
 
-        <form method="post" class="settings-form space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-xl mx-auto border border-gray-200 dark:border-gray-700">
+        <form method="post" class="space-y-6 bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl max-w-xl mx-auto border border-gray-200 dark:border-gray-700">
             <div class="space-y-6">
                 <div>
                     <label class="block font-semibold mb-3 text-gray-700 dark:text-gray-300">
@@ -274,7 +275,7 @@ require_once 'src/components/header.php';
                 </div>
             </div>
 
-            <button type="submit" class="w-full save-btn font-bold py-3 px-6 rounded-lg transition duration-200 hover:opacity-90 flex items-center justify-center">
+            <button type="submit" class="w-full gradient-bg text-white font-bold py-3 px-6 rounded-lg transition duration-200 hover:opacity-90 flex items-center justify-center">
                 <i class="fas fa-save mr-2"></i><?= t('save', $translations, $lang) ?>
             </button>
         </form>

@@ -1,14 +1,14 @@
 <?php
+http_response_code(404);
 session_start();
-require_once 'src/php/dbconn.php';
-require_once 'src/php/lang.php';
+require_once __DIR__ . '/src/php/dbconn.php';
+require_once __DIR__ . '/src/php/lang.php';
 
-// Récupération des préférences utilisateur
 $user_id = $_SESSION['id'] ?? 0;
 $lang = getLanguage($db, $user_id);
 $theme = getTheme($db, $user_id);
 
-http_response_code(404);
+require_once __DIR__ . '/src/components/header.php';
 ?>
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="<?= $theme === 'dark' ? 'dark' : '' ?>">

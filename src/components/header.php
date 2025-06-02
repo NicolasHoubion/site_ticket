@@ -8,7 +8,9 @@ $isAdmin = isset($_SESSION['role_id']) && in_array($_SESSION['role_id'], [1, 3, 
 require_once __DIR__ . '/../php/dbconn.php';
 require_once __DIR__ . '/../php/lang.php';
 
-$currentPage = $_SERVER['SCRIPT_NAME'];
+// Récupérer le chemin actuel sans paramètres
+$currentPath = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+$currentPath = rtrim($currentPath, '/') ?: '/';
 
 $lang = 'fr';
 $theme = 'light';
@@ -64,30 +66,30 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
       <!-- Logo -->
       <div class="flex items-center space-x-2">
         <i class="fas fa-ticket-alt text-2xl text-indigo-600 dark:text-indigo-400"></i>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white"><?= t('site_title', $translations, $lang) ?></h1>
+        <a href="/" class="text-2xl font-bold text-gray-800 dark:text-white"><?= t('site_title', $translations, $lang) ?></a>
       </div>
 
       <!-- Navigation Desktop -->
       <nav class="hidden md:flex space-x-8">
-        <a href="index.php"
+        <a href="/"
           class="font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition 
-                 <?= strpos($currentPage, 'index.php') !== false ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
+                 <?= $currentPath === '/' ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
           <?= t('home', $translations, $lang) ?>
         </a>
-        <a href="yourticket.php"
+        <a href="/yourticket.php"
           class="font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition 
-                 <?= strpos($currentPage, 'yourticket.php') !== false ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
+                 <?= $currentPath === '/yourticket.php' ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
           <?= t('my_tickets', $translations, $lang) ?>
         </a>
-        <a href="create_ticket.php"
+        <a href="/create_ticket.php"
           class="font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition 
-                 <?= strpos($currentPage, 'create_ticket.php') !== false ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
+                 <?= $currentPath === '/create_ticket.php' ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
           <?= t('new_ticket', $translations, $lang) ?>
         </a>
         <?php if ($isAdmin): ?>
-          <a href="admin.php"
+          <a href="/admin.php"
             class="font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 dark:hover:text-indigo-400 transition 
-                   <?= strpos($currentPage, 'admin.php') !== false ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
+                   <?= $currentPath === '/admin.php' ? 'border-b-2 border-indigo-600 dark:border-indigo-400' : '' ?>">
             <?= t('admin_panel', $translations, $lang) ?>
           </a>
         <?php endif; ?>
@@ -100,17 +102,17 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
           <div class="hidden md:block relative">
             <button id="userDropdownButton" class="flex items-center space-x-2 focus:outline-none group">
               <div class="h-8 w-8 rounded-full overflow-hidden border-2 border-indigo-100 dark:border-gray-600">
-                <img src="/src/images/<?= htmlspecialchars($userImage) ?>" alt="Profile" class="h-full w-full object-cover">
+                <img src="<?= $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] ?>/src/images/<?= htmlspecialchars($userImage) ?>" alt="Profile" class="h-full w-full object-cover">
               </div>
               <span class="text-gray-700 dark:text-gray-200 group-hover:text-indigo-600 transition"><?= htmlspecialchars($_SESSION['fname']) ?></span>
               <i class="fas fa-chevron-down ml-1 text-xs text-gray-600 dark:text-gray-400"></i>
             </button>
             <!-- Dropdown content -->
             <div id="userDropdown" class="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-xl py-2 z-50 hidden border border-gray-100 dark:border-gray-700">
-              <a href="profil.php" class="block px-4 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 transition">
+              <a href="/profil.php" class="block px-4 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-user-circle mr-2 text-indigo-600 dark:text-indigo-400"></i><?= t('profile', $translations, $lang) ?>
               </a>
-              <a href="param.php" class="block px-4 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 transition">
+              <a href="/param.php" class="block px-4 py-2.5 text-gray-700 dark:text-gray-200 hover:bg-indigo-50 dark:hover:bg-gray-700 transition">
                 <i class="fas fa-cog mr-2 text-indigo-600 dark:text-indigo-400"></i><?= t('settings', $translations, $lang) ?>
               </a>
               <div class="border-t border-gray-100 dark:border-gray-700 my-2"></div>
@@ -120,7 +122,7 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
             </div>
           </div>
         <?php else: ?>
-          <a href="login.php" class="hidden md:block font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 transition">
+          <a href="/login.php" class="hidden md:block font-medium text-gray-600 hover:text-indigo-600 dark:text-gray-300 transition">
             <?= t('login', $translations, $lang) ?>
           </a>
         <?php endif; ?>
@@ -147,34 +149,34 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
         </button>
       </div>
       <nav class="space-y-3">
-        <a href="index.php"
+        <a href="/"
           class="flex items-center p-3 rounded-lg
-                 <?= strpos($currentPage, 'index.php') !== false
+                 <?= $currentPath === '/' 
                     ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' ?>">
           <i class="fas fa-home mr-3"></i>
           <?= t('home', $translations, $lang) ?>
         </a>
-        <a href="yourticket.php"
+        <a href="/yourticket.php"
           class="flex items-center p-3 rounded-lg
-                 <?= strpos($currentPage, 'yourticket.php') !== false
+                 <?= $currentPath === '/yourticket.php'
                     ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' ?>">
           <i class="fas fa-ticket-alt mr-3"></i>
           <?= t('my_tickets', $translations, $lang) ?>
         </a>
-        <a href="create_ticket.php"
+        <a href="/create_ticket.php"
           class="flex items-center p-3 rounded-lg
-                 <?= strpos($currentPage, 'create_ticket.php') !== false
+                 <?= $currentPath === '/create_ticket.php'
                     ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400'
                     : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' ?>">
           <i class="fas fa-plus mr-3"></i>
           <?= t('new_ticket', $translations, $lang) ?>
         </a>
         <?php if ($isAdmin): ?>
-          <a href="admin.php"
+          <a href="/admin.php"
             class="flex items-center p-3 rounded-lg
-                   <?= strpos($currentPage, 'admin.php') !== false
+                   <?= $currentPath === '/admin.php'
                       ? 'bg-indigo-50 dark:bg-gray-700 text-indigo-600 dark:text-indigo-400'
                       : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700' ?>">
             <i class="fas fa-tools mr-3"></i>
@@ -185,14 +187,14 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
           <!-- Ajout de l'image de profil dans le menu mobile -->
           <div class="flex items-center py-2">
             <div class="h-8 w-8 rounded-full overflow-hidden mr-2">
-              <img src="/src/images/<?= htmlspecialchars($userImage) ?>" alt="Profile" class="h-full w-full object-cover">
+              <img src="<?= $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'] ?>/src/images/<?= htmlspecialchars($userImage) ?>" alt="Profile" class="h-full w-full object-cover">
             </div>
             <span class="text-gray-800 dark:text-gray-200 font-medium"><?= htmlspecialchars($_SESSION['fname']) ?></span>
           </div>
-          <a href="profil.php" class="block py-2 text-gray-800 dark:text-gray-200 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+          <a href="/profil.php" class="block py-2 text-gray-800 dark:text-gray-200 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition">
             <?= t('profile', $translations, $lang) ?>
           </a>
-          <a href="param.php" class="block py-2 text-gray-800 dark:text-gray-200 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition">
+          <a href="/param.php" class="block py-2 text-gray-800 dark:text-gray-200 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition">
             <?= t('settings', $translations, $lang) ?>
           </a>
           <a href="/src/php/logout.php" class="block py-2 text-gray-800 dark:text-gray-200 font-medium hover:text-indigo-600 dark:hover:text-indigo-400 transition">
@@ -241,26 +243,26 @@ $theme = $_COOKIE['theme_preference'] ?? $theme;
       });
     }
 
-  // Gestion du thème
-  const loadTheme = () => {
-    const html = document.documentElement;
+    // Gestion du thème
+    const loadTheme = () => {
+      const html = document.documentElement;
+      
+      // Priorité 1: cookie
+      // Priorité 2: valeur PHP par défaut
+      const savedTheme = getCookie('theme_preference') || '<?= $theme ?>';
+      
+      // Appliquer le thème
+      html.classList.toggle('dark', savedTheme === 'dark');
+    };
+    
+    // Fonction utilitaire pour lire les cookies
+    function getCookie(name) {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop().split(';').shift();
+    }
 
-    // Priorité 1: cookie
-    // Priorité 2: valeur PHP par défaut
-    const savedTheme = getCookie('theme_preference') || '<?= $theme ?>';
-
-    // Appliquer le thème
-    html.classList.toggle('dark', savedTheme === 'dark');
-  };
-
-  // Fonction utilitaire pour lire les cookies
-  function getCookie(name) {
-    const value = `; ${document.cookie}`;
-    const parts = value.split(`; ${name}=`);
-    if (parts.length === 2) return parts.pop().split(';').shift();
-  }
-
-  // Appliquer le thème au chargement
-  loadTheme();
+    // Appliquer le thème au chargement
+    loadTheme();
   });
 </script>

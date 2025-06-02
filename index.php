@@ -1,7 +1,6 @@
 <?php
-session_start();
-require_once 'src/php/dbconn.php';
-require_once 'src/php/lang.php';
+require_once __DIR__ . '/src/php/dbconn.php';
+require_once __DIR__ . '/src/php/lang.php';
 
 // Vérifier le thème avant d'inclure le header
 $user_id = $_SESSION['id'] ?? 0;
@@ -12,91 +11,99 @@ $theme = getTheme($db, $user_id);
 $theme = $_COOKIE['theme_preference'] ?? $theme;
 
 // Maintenant inclure le header
-require_once 'src/components/header.php';
-
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+require_once __DIR__ . '/src/components/header.php';
 ?>
 
 <!DOCTYPE html>
 <html lang="<?= $lang ?>" class="<?= $theme === 'dark' ? 'dark' : '' ?>">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= t('site_title', $translations, $lang) ?></title>
     <style>
-:root {
-    --gradient-start: #6366f1; /* indigo-500 */
-    --gradient-end: #a5b4fc;   /* indigo-200 */
-    --cta-bg: #f9fafb;         /* gray-50, plus doux */
-    --cta-text: #312e81;       /* indigo-900 */
-    --section-bg: #f9fafb;     /* gray-50, plus doux */
-    --feature-bg: #f9fafb;     /* gray-50, plus doux */
-    --body-bg: #f9fafb;        /* gray-50, plus doux */
-}
+        :root {
+            --gradient-start: #6366f1;
+            /* indigo-500 */
+            --gradient-end: #a5b4fc;
+            /* indigo-200 */
+            --cta-bg: #f9fafb;
+            /* gray-50, plus doux */
+            --cta-text: #312e81;
+            /* indigo-900 */
+            --section-bg: #f9fafb;
+            /* gray-50, plus doux */
+            --feature-bg: #f9fafb;
+            /* gray-50, plus doux */
+            --body-bg: #f9fafb;
+            /* gray-50, plus doux */
+        }
 
-.dark {
-    --gradient-start: #3730A3;
-    --gradient-end: #6D28D9;
-    --cta-bg: #1e293b;         /* slate-800 */
-    --cta-text: #fff;
-    --section-bg: #1e293b;
-    --feature-bg: #374151;     /* gray-700 */
-    --body-bg: #111827;        /* gray-900 */
-}
+        .dark {
+            --gradient-start: #3730A3;
+            --gradient-end: #6D28D9;
+            --cta-bg: #1e293b;
+            /* slate-800 */
+            --cta-text: #fff;
+            --section-bg: #1e293b;
+            --feature-bg: #374151;
+            /* gray-700 */
+            --body-bg: #111827;
+            /* gray-900 */
+        }
 
-body {
-    background: var(--body-bg) !important;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
+        body {
+            background: var(--body-bg) !important;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
 
-.gradient-bg {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-}
+        .gradient-bg {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+        }
 
-.gradient-text {
-    background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-}
+        .gradient-text {
+            background: linear-gradient(135deg, var(--gradient-start) 0%, var(--gradient-end) 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: transparent;
+        }
 
-.soft-section {
-    background: var(--section-bg);
-}
+        .soft-section {
+            background: var(--section-bg);
+        }
 
-.feature-card {
-    background: var(--feature-bg);
-    border: 1px solid #e5e7eb;
-    transition: all 0.3s ease;
-}
+        .feature-card {
+            background: var(--feature-bg);
+            border: 1px solid #e5e7eb;
+            transition: all 0.3s ease;
+        }
 
-.feature-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-}
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+        }
 
-.cta-soft {
-    background: var(--body-bg); /* même couleur que le body */
-    color: var(--cta-text);
-}
+        .cta-soft {
+            background: var(--body-bg);
+            /* même couleur que le body */
+            color: var(--cta-text);
+        }
 
-.cta-soft .cta-btn {
-    background: var(--gradient-start);
-    color: #fff;
-}
+        .cta-soft .cta-btn {
+            background: var(--gradient-start);
+            color: #fff;
+        }
 
-.cta-soft .cta-btn:hover {
-    opacity: 0.9;
-}
+        .cta-soft .cta-btn:hover {
+            opacity: 0.9;
+        }
 
-main {
-    flex: 1;
-}
+        main {
+            flex: 1;
+        }
     </style>
 </head>
 
@@ -207,4 +214,5 @@ main {
         });
     </script>
 </body>
+
 </html>
